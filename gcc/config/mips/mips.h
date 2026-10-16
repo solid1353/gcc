@@ -2436,7 +2436,12 @@ enum reg_class
    `crtl->outgoing_args_size'.  */
 #define OUTGOING_REG_PARM_STACK_SPACE(FNTYPE) 1
 
-#define STACK_BOUNDARY (TARGET_NEWABI ? 128 : 64)
+/* The R5900 keeps a 16-byte aligned stack under EABI too: code from the
+   PS2's native compilers saves 128-bit registers to the stack with sq.  */
+#define MIPS_STACK_ALIGNED_16 \
+  (TARGET_NEWABI || (TARGET_MIPS5900 && mips_abi == ABI_EABI))
+
+#define STACK_BOUNDARY (MIPS_STACK_ALIGNED_16 ? 128 : 64)
 
 /* Symbolic macros for the registers used to return integer and floating
    point values.  */
@@ -2563,7 +2568,7 @@ typedef struct mips_args {
 /* Treat LOC as a byte offset from the stack pointer and round it up
    to the next fully-aligned offset.  */
 #define MIPS_STACK_ALIGN(LOC) \
-  (TARGET_NEWABI ? ROUND_UP ((LOC), 16) : ROUND_UP ((LOC), 8))
+  (MIPS_STACK_ALIGNED_16 ? ROUND_UP ((LOC), 16) : ROUND_UP ((LOC), 8))
 
 
 /* Output assembler code to FILE to increment profiler label # LABELNO
